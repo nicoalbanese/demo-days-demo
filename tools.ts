@@ -31,17 +31,22 @@ export const fetchCrunchbase = tool({
     companyUrl: z.string().url().describe("The company's url"),
   }),
   execute: async ({ companyUrl }) => {
-    const result = await exa.searchAndContents(
-      `${companyUrl} crunchbase page:`,
-      {
-        type: "keyword",
-        numResults: 1,
-        summary: true,
-        includeDomains: ["crunchbase.com"],
-        includeText: [companyUrl],
-      },
-    );
-    return result.results[0] ?? "No results found.";
+    try {
+      const result = await exa.searchAndContents(
+        `${companyUrl} crunchbase page:`,
+        {
+          type: "keyword",
+          numResults: 1,
+          summary: true,
+          includeDomains: ["crunchbase.com"],
+          includeText: [companyUrl],
+        },
+      );
+      return result.results[0] ?? "No results found.";
+    } catch (error) {
+      console.error("Error fetching Crunchbase data:", error);
+      return "Error fetching Crunchbase data";
+    }
   },
 });
 
@@ -144,18 +149,10 @@ export const generateReport = tool({
   parameters: z.object({
     company: z.string().describe("The name of the company"),
   }),
-  execute: async ({ company }) => {
-    const { text: description, sources } = await generateText({
-      model: perplexity("sonar"),
-      system:
-        "You are a VC due dilligence analyst trying to get information about a company you want to invest in.",
-
-      prompt: `For the following company provide:
-    - a brief company description
-    - what do they sell / what products do they offer
-
-    <company>${company}</company>`,
-    });
-    return { description, sources };
+  execute: async ({ company }, { messages }) => {
+    console.log(company, messages);
+    const research = messages.filter((m) => m.role === "tool");
+    console.log(JSON.stringify(research, null, 2));
+    return "hello";
   },
 });

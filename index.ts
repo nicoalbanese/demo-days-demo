@@ -7,6 +7,7 @@ import {
   getCompanyInfo,
   fetchFunding,
   fetchCrunchbase,
+  generateReport, // something wrong with this!!
 } from "./tools";
 
 const dueDilligenceAgent = async (prompt: string) => {
@@ -14,13 +15,13 @@ const dueDilligenceAgent = async (prompt: string) => {
     model: openai("gpt-4.1-mini"),
     prompt,
     system:
-      "You are a technoloy VC investment analyst. Compile a report on the requested company. Always provide sources inline. Your report should have info on the founders",
+      "You are a technoloy VC investment analyst. Compile a report on the requested company. Always provide sources inline. Your report should have info on the founders. Fetch data first, then call the generateReport tool.",
     tools: {
       getFounderBackground,
-      fetchCrunchbase,
       getCompanyInfo,
-      getCompetitors,
-      fetchFunding,
+      // getCompetitors,
+      // fetchFunding,
+      generateReport
     },
     stopWhen: stepCountIs(5),
   });
