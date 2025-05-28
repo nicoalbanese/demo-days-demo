@@ -31,6 +31,14 @@ const dueDilligenceAgent = async (prompt: string) => {
     if (chunk.type === "text") {
       process.stdout.write(chunk.text);
     }
+
+    if (chunk.type === "tool-call") {
+      console.log("Tool call:", chunk);
+    }
+
+    if (chunk.type === "tool-result") {
+      console.log("Tool call:", chunk);
+    }
   }
 };
 
