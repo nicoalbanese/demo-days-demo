@@ -151,7 +151,7 @@ export const generateReport = tool({
   execute: async ({ companyName }, { messages }) => {
     const { text } = await generateText({
       system:
-        "You are an investment analyst. Your task is to write a comprehensive investment report using the context provided. Your report should follow the Sequoia memo template (do not include Sequoia in the memo). For any info you don't have just say you don't have it. Use complete sentences. Use markdown formatting.",
+        "You are an investment analyst. Your task is to write a comprehensive investment report using the context provided. Your report should follow the Sequoia memo template (do not include Sequoia in the memo). For any info you don't have just say you don't have it. Use complete sentences. Use markdown formatting. Be sure to cite any sources you use (with links).",
       model: openai("o4-mini"),
       messages,
     });
