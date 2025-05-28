@@ -1,14 +1,18 @@
 import { openai } from "@ai-sdk/openai";
-import { generateText } from "ai";
+import { streamText } from "ai";
 import "dotenv/config";
 
 const dueDilligenceAgent = async (prompt: string) => {
-  const result = await generateText({
+  const result = streamText({
     model: openai("gpt-4.1-mini"),
     prompt,
   });
 
-  console.log(result.text);
+  for await (const chunk of result.fullStream) {
+    if (chunk.type === "text") {
+      process.stdout.write(chunk.text);
+    }
+  }
 };
 
 dueDilligenceAgent("Hey, how are you?");
