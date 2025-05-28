@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai";
-import { streamText, tool } from "ai";
+import { stepCountIs, streamText, tool } from "ai";
 import "dotenv/config";
 import z from "zod";
 import { exa } from "./utils";
@@ -25,6 +25,7 @@ const dueDilligenceAgent = async (prompt: string) => {
         },
       }),
     },
+    stopWhen: stepCountIs(10),
   });
 
   for await (const chunk of result.fullStream) {
