@@ -1,31 +1,16 @@
 import { openai } from "@ai-sdk/openai";
-import { stepCountIs, streamText, tool } from "ai";
+import { stepCountIs, streamText } from "ai";
 import "dotenv/config";
-import z from "zod";
-import { exa } from "./utils";
+import * as tools from "./tools";
+import { system } from "./system-prompt";
 
 const dueDilligenceAgent = async (prompt: string) => {
   const result = streamText({
     model: openai("gpt-4.1-mini"),
-    system: `You are a VC analyst. You excel at producing due dilligence (DD) reports to help make investment decisions.`,
     prompt,
-    tools: {
-      scrapeWebsite: tool({
-        description: "Scrape a company's website for information",
-        parameters: z.object({
-          companyUrl: z.string().describe("The URL of the company's website"),
-        }),
-        execute: async ({ companyUrl }) => {
-          const result = await exa.searchAndContents(companyUrl, {
-            type: "keyword",
-            numResults: 1,
-            livecrawl: "always",
-          });
-          return result.results[0];
-        },
-      }),
-    },
+    system,
     stopWhen: stepCountIs(10),
+    tools,
   });
 
   for await (const chunk of result.fullStream) {
