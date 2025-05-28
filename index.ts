@@ -42,4 +42,4 @@ const dueDilligenceAgent = async (prompt: string) => {
   }
 };
 
-dueDilligenceAgent("Please can you complete a DD report on granola.ai");
+dueDilligenceAgent("granola.ai");
