@@ -5,6 +5,7 @@ import "dotenv/config";
 const dueDilligenceAgent = async (prompt: string) => {
   const result = streamText({
     model: openai("gpt-4.1-mini"),
+    system: `You are a VC analyst. You excel at producing due dilligence (DD) reports to help make investment decisions.`,
     prompt,
   });
 
