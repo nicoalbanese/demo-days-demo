@@ -1,32 +1,19 @@
-import { openai } from "@ai-sdk/openai";
 import { stepCountIs, streamText } from "ai";
+import { openai } from "@ai-sdk/openai";
 import "dotenv/config";
-import {
-  getCompetitors,
-  getFounderBackground,
-  getCompanyInfo,
-  fetchFunding,
-  fetchCrunchbase,
-  generateReport, // something wrong with this!!
-} from "./tools";
+import * as tools from "./tools";
 
 const dueDilligenceAgent = async (prompt: string) => {
-  const result = streamText({
+  const { fullStream } = streamText({
     model: openai("gpt-4.1-mini"),
     prompt,
     system:
-      "You are a technoloy VC investment analyst. Compile a report on the requested company. Always provide sources inline. Your report should have info on the founders. Fetch data first, then call the generateReport tool.",
-    tools: {
-      getFounderBackground,
-      getCompanyInfo,
-      // getCompetitors,
-      // fetchFunding,
-      generateReport
-    },
+      "You are a VC dd analyst. You will be asked to compile a DD report on a company. Use all the relevant tools available to you to collect information and then generate a report. Things you should cover in the report include, company info, funding history, founder info, competitor analysis etc. Collect info first, then generateReport once you have all available info. Once done, do not repeat your findings to the user.",
     stopWhen: stepCountIs(5),
+    tools,
   });
 
-  for await (const chunk of result.fullStream) {
+  for await (const chunk of fullStream) {
     if (chunk.type === "text") {
       process.stdout.write(chunk.text);
     }
@@ -34,9 +21,9 @@ const dueDilligenceAgent = async (prompt: string) => {
       console.log("Tool called:", chunk);
     }
     if (chunk.type === "tool-result") {
-      console.log(chunk.result);
+      console.log("Tool result:", chunk);
     }
   }
 };
 
-dueDilligenceAgent("Can you build an investment case for granola.ai");
+dueDilligenceAgent("Can you compile dd on granola.ai");

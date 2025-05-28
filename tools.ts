@@ -1,14 +1,14 @@
 import { perplexity } from "@ai-sdk/perplexity";
 import { generateText, tool } from "ai";
-import { Exa } from "exa-js";
 import { z } from "zod";
-
-const exa = new Exa(process.env.EXA_API_KEY);
+import { exa } from "./utils";
+import { openai } from "@ai-sdk/openai";
+import fs from "fs";
 
 export const scrapeCompanyWebsite = tool({
   description: "Scrape a company's website for information",
   parameters: z.object({
-    companyUrl: z.string().url().describe("The URL of the company's website"),
+    companyUrl: z.string().describe("The URL of the company's website"),
   }),
   execute: async ({ companyUrl }) => {
     const result = await exa.searchAndContents(companyUrl, {
@@ -26,9 +26,10 @@ export const scrapeCompanyWebsite = tool({
 });
 
 export const fetchCrunchbase = tool({
-  description: "Fetches information from the company's Crunchbase page",
+  description:
+    "Fetches information about a company from Crunchbase (funding and company info)",
   parameters: z.object({
-    companyUrl: z.string().url().describe("The company's url"),
+    companyUrl: z.string().describe("The company's url"),
   }),
   execute: async ({ companyUrl }) => {
     try {
@@ -39,7 +40,6 @@ export const fetchCrunchbase = tool({
           numResults: 1,
           summary: true,
           includeDomains: ["crunchbase.com"],
-          includeText: [companyUrl],
         },
       );
       return result.results[0] ?? "No results found.";
@@ -51,7 +51,7 @@ export const fetchCrunchbase = tool({
 });
 
 export const fetchFunding = tool({
-  description: "Fetches funding info from pitchbook information for a company",
+  description: "Fetches funding info for a company",
   parameters: z.object({
     companyUrl: z.string().describe("The url of the company"),
   }),
@@ -71,7 +71,8 @@ export const fetchFunding = tool({
 });
 
 export const fetchPitchbook = tool({
-  description: "Fetches pitchbook information for a company",
+  description:
+    "Fetches pitchbook for information (funding and company info) for a company",
   parameters: z.object({
     company: z.string().describe("The name of the company"),
   }),
@@ -80,7 +81,6 @@ export const fetchPitchbook = tool({
       type: "keyword",
       numResults: 1,
       includeDomains: ["pitchbook.com"],
-      includeText: [company],
     });
     return result.results[0] ?? "No results found.";
   },
@@ -145,14 +145,19 @@ export const getCompanyInfo = tool({
 });
 
 export const generateReport = tool({
-  description: "Generates a VC due dilligence report about a company",
-  parameters: z.object({
-    company: z.string().describe("The name of the company"),
-  }),
-  execute: async ({ company }, { messages }) => {
-    console.log(company, messages);
-    const research = messages.filter((m) => m.role === "tool");
-    console.log(JSON.stringify(research, null, 2));
-    return "hello";
+  description:
+    "Generates a VC due dilligence report about a company. Only use this once you have collected all necessary information.",
+  parameters: z.object({ companyName: z.string() }),
+  execute: async ({ companyName }, { messages }) => {
+    const { text } = await generateText({
+      system:
+        "You are an investment analyst. Your task is to write a comprehensive investment report using the context provided. Your report should follow the Sequoia memo template (do not include Sequoia in the memo). For any info you don't have just say you don't have it. Use complete sentences. Use markdown formatting.",
+      model: openai("o4-mini"),
+      messages,
+    });
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const filename = `${companyName}-${timestamp}.md`;
+    fs.writeFileSync(filename, text);
+    return `Report generated. Direct the user to ${filename} to read it.`;
   },
 });
